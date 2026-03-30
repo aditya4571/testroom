@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .overdue-input {
-            border-color: #ef4444 !important; /* Red-500 */
-            background-color: #fef2f2 !important; /* Red-50 */
-            color: #b91c1c !important; /* Red-700 */
+            border-color: #ef4444 !important; 
+            background-color: #fef2f2 !important; 
+            color: #b91c1c !important; 
         }
         .overdue-text {
             color: #ef4444;
@@ -149,8 +149,8 @@
                 </div>
                 
                 <p class="text-sm text-gray-600 bg-blue-50 p-3 rounded border border-blue-100 border-l-4 border-l-blue-400 no-print">
-                    ℹ️ <b>Instructions:</b> Check <b>"Applicable"</b> if the equipment exists. Testing Periodicity is <b>180 Days (Working)</b> and <b>90 Days (Spare)</b>. <br>
-                    <span class="text-red-600 font-semibold">Note: For STM-1, both Working and Spare fibers have a strict 90 Days limit.</span>
+                    ℹ️ <b>Instructions:</b> Testing Periodicity for Working Fibers (SSE/Incharge) is <b>180 Days</b>. For Spare Fibers (Sectional SSE/JE), the <b>90 Days</b> limit safely resets based on the <i>most recent test</i> by either the Incharge or the Sectional JE. <br>
+                    <span class="text-red-600 font-semibold">Note: For STM-1, Joint Fiber testing with RCIL has a strict 90 Days limit.</span>
                 </p>
                 
                 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6" id="equipmentGrids">
@@ -163,7 +163,7 @@
                 <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-4 border-b pb-4 gap-4">
                     <div>
                         <h2 class="text-xl font-bold text-red-700">🚨 Overdue Testing Report</h2>
-                        <p class="text-xs font-bold text-gray-500 mt-1">Limits: Work > 180 Days | Spare > 90 Days <span class="text-red-500">(STM-1: Work & Spare > 90 Days)</span></p>
+                        <p class="text-xs font-bold text-gray-500 mt-1">Limits: Incharge > 180 Days | Sectional > 90 Days <span class="text-red-500">(STM-1: Joint Testing > 90 Days)</span></p>
                     </div>
                     
                     <div class="flex flex-wrap items-center gap-2 no-print">
@@ -200,8 +200,8 @@
                                 <th class="py-3 px-4 text-left text-sm font-semibold">INCHARGE SSE</th>
                                 <th class="py-3 px-4 text-left text-sm font-semibold">SECTIONAL SSE/JE</th>
                                 <th class="py-3 px-4 text-left text-sm font-semibold">Block Section</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">Equipment</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">Fiber Type</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Eq.</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Test Type</th>
                                 <th class="py-3 px-4 text-left text-sm font-semibold">Last Tested Date</th>
                                 <th class="py-3 px-4 text-left text-sm font-semibold text-red-400 whitespace-nowrap">Days Overdue</th>
                             </tr>
@@ -219,32 +219,24 @@
 
         <section id="tab-alldata" class="space-y-6 hidden">
             <div class="bg-white p-6 rounded-xl shadow border-t-4 border-purple-600">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 border-b pb-4 gap-4">
-                    <div>
-                        <h2 class="text-xl font-bold text-purple-800">📊 Master Database View</h2>
-                        <p class="text-xs font-bold text-gray-500 mt-1">Showing all entered equipment data across all sections.</p>
-                    </div>
-                    <div class="no-print flex items-center bg-gray-50 border p-2 rounded w-full md:w-auto">
-                        <span class="mr-2">🔍</span>
-                        <input type="text" id="masterSearch" placeholder="Search Incharge, Block..." class="bg-transparent border-none outline-none w-full text-sm font-semibold text-gray-700" onkeyup="filterMasterTable()">
-                    </div>
+                <div class="flex justify-between items-center mb-4 border-b pb-4 gap-4">
+                    <h2 class="text-xl font-bold text-purple-800">📊 Master Database View</h2>
+                    <input type="text" id="masterSearch" placeholder="Search..." class="border p-2 rounded no-print text-sm font-semibold" onkeyup="filterMasterTable()">
                 </div>
-                
                 <div class="overflow-x-auto rounded border w-full">
                     <table class="min-w-full bg-white" id="masterTable">
                         <thead class="bg-slate-800 text-white">
                             <tr>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">INCHARGE SSE</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">SECTIONAL SSE/JE</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">Block Section</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">Equipment</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">Working Date</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">Spare Date</th>
-                                <th class="py-3 px-4 text-left text-sm font-semibold">Remarks</th>
+                                <th class="py-3 px-4 text-left text-sm">INCHARGE SSE</th>
+                                <th class="py-3 px-4 text-left text-sm">SECTIONAL SSE/JE</th>
+                                <th class="py-3 px-4 text-left text-sm">Block Section</th>
+                                <th class="py-3 px-4 text-left text-sm">Eq.</th>
+                                <th class="py-3 px-4 text-left text-sm">Incharge Date</th>
+                                <th class="py-3 px-4 text-left text-sm">Sectional Date</th>
+                                <th class="py-3 px-4 text-left text-sm">Remarks</th>
                             </tr>
                         </thead>
-                        <tbody id="allDataTableBody" class="text-sm divide-y divide-gray-200">
-                            </tbody>
+                        <tbody id="allDataTableBody" class="text-sm divide-y divide-gray-200"></tbody>
                     </table>
                 </div>
             </div>
@@ -263,8 +255,8 @@
                 "JE/T/KVZ": ["KVZ-SVPM IB","KVZ-TTU IB","TTU-KVZ IB","UPD-TTU IB","TTU-UPD IB","UPD-SKM IB","SKM-UPD IB"]
             },
             "SSE/T/OGL": {
-                "JE/T/OGL": ["SKM-TNR","TNR-SDM","SDM-OGL","OGL-KRV","KRV-ANB"],
-                "JE/T/CLX": ["ANB-UGD","UGD-CJM","CJM-VTM","VTM-CLX"]
+                "JE/T/OGL": ["SKM YARD","SKM-TNR IB","TNR-SKM IB","TNR YARD","TNR-SDM IB","SDM-TNR IB","SDM YARD","SDM-OGL IB","OGL-SDM IB","OGL YARD","OGL-KRV IB","KRV-OGL IB","KRV YARD","KRV-ANB"],
+                "JE/T/CLX": ["ANB YARD","ANB-UGD IB","UGD-ANB IB","UGD YARD","UGD-CJM","CJM YARD","CJM-VTM DN IB","VTM-CJM UP IB","VTM YARD","VTM-CLX IB","CLX-VTM IB","CLX YARD"]
             },
             "SSE/T/TEL": {
                 "JE/T/BPP": ["CLX-SPF","SPF-BPP","BPP-APL","APL-NDO","NDO-TSR"],
@@ -308,7 +300,7 @@
             { name: "STM-1 with RCIL", id: "STM-1" }
         ];
         
-        let db = JSON.parse(localStorage.getItem('ofcDb_v10')); 
+        let db = JSON.parse(localStorage.getItem('ofcDb_v10_logic')); 
         
         if (!db) {
             db = {};
@@ -319,50 +311,25 @@
                     sectionHierarchy[inc][sec].forEach(block => {
                         db[inc][sec][block] = {};
                         eqTypes.forEach(eq => {
-                            db[inc][sec][block][eq.id] = { isApplicable: false, workingDate: "", spareDate: "", remarks: "" };
+                            db[inc][sec][block][eq.id] = { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
                         });
                     });
-                }
-            }
-            
-            // Auto migrate
-            let oldDb = JSON.parse(localStorage.getItem('ofcDb_v9')) || JSON.parse(localStorage.getItem('ofcDb_v8'));
-            if(oldDb) {
-                for(let inc in oldDb) {
-                    for(let sec in oldDb[inc]) {
-                        for(let block in oldDb[inc][sec]) {
-                            if(!db[inc]) db[inc] = {};
-                            if(!db[inc][sec]) db[inc][sec] = {};
-                            if(!db[inc][sec][block]) db[inc][sec][block] = {};
-                            
-                            eqTypes.forEach(eq => {
-                                if(oldDb[inc][sec][block][eq.id]) {
-                                    db[inc][sec][block][eq.id] = oldDb[inc][sec][block][eq.id];
-                                } else {
-                                    db[inc][sec][block][eq.id] = { isApplicable: false, workingDate: "", spareDate: "", remarks: "" };
-                                }
-                            });
-                        }
-                    }
                 }
             }
             saveDbToStorage();
         }
 
         function saveDbToStorage() {
-            localStorage.setItem('ofcDb_v10', JSON.stringify(db));
+            localStorage.setItem('ofcDb_v10_logic', JSON.stringify(db));
         }
 
-        // CORRECT DROPDOWN POPULATION LOGIC TO PREVENT DUPLICATES
         function populateInitialDropdowns() {
             const inchargeSelect = document.getElementById("inchargeSelect");
             const reportSseSelect = document.getElementById("reportSseSelect");
 
-            // CLEAR first to prevent duplication
             inchargeSelect.innerHTML = '<option value="">-- Select Incharge --</option>';
             reportSseSelect.innerHTML = '<option value="ALL">All Sections</option>';
 
-            // Use Object.keys(db) to include any newly imported custom Incharges, uniquely.
             const uniqueIncharges = Object.keys(db).sort();
             uniqueIncharges.forEach(inc => {
                 inchargeSelect.add(new Option(inc, inc));
@@ -373,7 +340,7 @@
         window.onload = function() {
             populateInitialDropdowns();
             buildEquipmentUI();
-            generateAllDataReport(); // Preload Master table
+            generateAllDataReport(); 
         }
 
         function switchTab(tab) {
@@ -381,7 +348,6 @@
             document.getElementById('tab-report').style.display = tab === 'report' ? 'block' : 'none';
             document.getElementById('tab-alldata').style.display = tab === 'alldata' ? 'block' : 'none';
             
-            // Manage Active Button Styles
             const activeClass = "bg-blue-500 px-3 py-2 rounded font-semibold transition text-white text-sm shadow";
             const inactiveClass = "bg-blue-900 hover:bg-blue-700 px-3 py-2 rounded font-semibold transition text-gray-300 text-sm shadow";
 
@@ -404,7 +370,7 @@
             document.getElementById("dataForm").classList.add("hidden");
             
             blockSelect.disabled = true; blockSelect.classList.add("bg-gray-100", "cursor-not-allowed"); blockSelect.classList.remove("bg-white");
-            addBtn.disabled = true; addBtn.classList.add("bg-gray-200", "text-gray-500", "cursor-not-allowed"); addBtn.classList.remove("bg-green-600", "text-white");
+            addBtn.disabled = true; addBtn.classList.add("bg-gray-200", "text-gray-500", "cursor-not-allowed");
 
             if (inc) {
                 secSelect.disabled = false;
@@ -472,7 +438,7 @@
                 
                 db[inc][sec][blockName] = {};
                 eqTypes.forEach(eq => {
-                    db[inc][sec][blockName][eq.id] = { isApplicable: false, workingDate: "", spareDate: "", remarks: "" };
+                    db[inc][sec][blockName][eq.id] = { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
                 });
                 
                 saveDbToStorage();
@@ -501,13 +467,14 @@
                 const isAppCheckbox = document.getElementById(`${eq.id}-applicable`);
                 isAppCheckbox.checked = record[eq.id].isApplicable;
                 
-                document.getElementById(`${eq.id}-work`).value = record[eq.id].workingDate;
-                document.getElementById(`${eq.id}-spare`).value = record[eq.id].spareDate;
+                document.getElementById(`${eq.id}-incharge`).value = record[eq.id].inchargeDate;
+                if (eq.id !== 'STM-1') {
+                    document.getElementById(`${eq.id}-sectional`).value = record[eq.id].sectionalDate;
+                }
                 document.getElementById(`${eq.id}-rem`).value = record[eq.id].remarks;
                 
                 toggleEquipmentUI(eq.id); 
-                checkOverdueUI(`${eq.id}-work`, record[eq.id].workingDate, 'work');
-                checkOverdueUI(`${eq.id}-spare`, record[eq.id].spareDate, 'spare');
+                updateEquipmentOverdueUI(eq.id); // Validates the specific new logic rules
             });
         }
 
@@ -522,9 +489,8 @@
             } else {
                 fieldsContainer.classList.add('equipment-disabled');
                 inputs.forEach(input => input.disabled = true);
-                checkOverdueUI(`${eqId}-work`, "", 'work');
-                checkOverdueUI(`${eqId}-spare`, "", 'spare');
             }
+            updateEquipmentOverdueUI(eqId); // Clear or display warnings
         }
 
         function saveData() {
@@ -533,28 +499,23 @@
             const block = document.getElementById("blockSelect").value;
             if (!inc || !sec || !block) return;
 
+            const btn = document.querySelector('button[onclick="saveData()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Saving...";
+
             eqTypes.forEach(eq => {
                 const isApp = document.getElementById(`${eq.id}-applicable`).checked;
-                const wDate = isApp ? document.getElementById(`${eq.id}-work`).value : "";
-                const sDate = isApp ? document.getElementById(`${eq.id}-spare`).value : "";
-                const rem = isApp ? document.getElementById(`${eq.id}-rem`).value : "";
-                
                 db[inc][sec][block][eq.id] = {
                     isApplicable: isApp,
-                    workingDate: wDate,
-                    spareDate: sDate,
-                    remarks: rem
+                    inchargeDate: isApp ? document.getElementById(`${eq.id}-incharge`).value : "",
+                    sectionalDate: (isApp && eq.id !== 'STM-1') ? document.getElementById(`${eq.id}-sectional`).value : "",
+                    remarks: isApp ? document.getElementById(`${eq.id}-rem`).value : ""
                 };
-                
-                checkOverdueUI(`${eq.id}-work`, wDate, 'work');
-                checkOverdueUI(`${eq.id}-spare`, sDate, 'spare');
             });
 
             saveDbToStorage();
             generateAllDataReport(); // Sync master table
             
-            const btn = document.querySelector('button[onclick="saveData()"]');
-            const originalText = btn.innerText;
             btn.innerText = "✅ Saved!";
             btn.classList.replace("bg-blue-600", "bg-green-600");
             setTimeout(() => {
@@ -563,41 +524,83 @@
             }, 2000);
         }
 
-        function getOverdueDays(dateString) {
-            if (!dateString) return 0;
-            const testDate = new Date(dateString);
+        function getOverdueDays(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return null;
+            const testDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            if (isNaN(testDate.getTime())) return null;
+            
             const today = new Date();
             today.setHours(0,0,0,0); 
-            testDate.setHours(0,0,0,0);
-            return Math.floor((today - testDate) / (1000 * 60 * 60 * 24));
+            return Math.floor((today.getTime() - testDate.getTime()) / (1000 * 60 * 60 * 24));
         }
 
-        function checkOverdueUI(inputId, dateString, fiberType) {
-            const eqId = inputId.split('-')[0];
-            const isApplicableCheckbox = document.getElementById(`${eqId}-applicable`);
-            const isApplicable = isApplicableCheckbox ? isApplicableCheckbox.checked : true;
-            
+        function setOverdueWarning(inputId, isOverdue, daysOver) {
             const inputEl = document.getElementById(inputId);
-            const spanId = `span-${inputId}`;
-            let spanEl = document.getElementById(spanId);
+            if(!inputEl) return;
             
+            let spanEl = document.getElementById(`span-${inputId}`);
             if (!spanEl) {
                 spanEl = document.createElement('span');
-                spanEl.id = spanId;
+                spanEl.id = `span-${inputId}`;
                 spanEl.className = 'overdue-text hidden font-bold';
                 inputEl.parentNode.appendChild(spanEl);
             }
-
-            const days = getOverdueDays(dateString);
-            let limit = (eqId === 'STM-1') ? 90 : (fiberType === 'work' ? 180 : 90);
             
-            if (isApplicable && days > limit) {
+            if (isOverdue) {
                 inputEl.classList.add('overdue-input');
                 spanEl.classList.remove('hidden');
-                spanEl.innerHTML = `⚠️ Overdue by ${days - limit} days`;
+                spanEl.innerHTML = `⚠️ Overdue by ${daysOver} days`;
             } else {
                 inputEl.classList.remove('overdue-input');
                 spanEl.classList.add('hidden');
+            }
+        }
+
+        // Apply updated Min Logic for Spare Fibers
+        function updateEquipmentOverdueUI(eqId) {
+            const isApp = document.getElementById(`${eqId}-applicable`).checked;
+            
+            if (!isApp) {
+                setOverdueWarning(`${eqId}-incharge`, false, 0);
+                if (eqId !== 'STM-1') setOverdueWarning(`${eqId}-sectional`, false, 0);
+                return;
+            }
+            
+            if (eqId === 'STM-1') {
+                const dateStr = document.getElementById(`${eqId}-incharge`).value;
+                const days = getOverdueDays(dateStr);
+                if (days !== null && days > 90) {
+                    setOverdueWarning(`${eqId}-incharge`, true, days - 90);
+                } else {
+                    setOverdueWarning(`${eqId}-incharge`, false, 0);
+                }
+            } else {
+                const iDate = document.getElementById(`${eqId}-incharge`).value;
+                const sDate = document.getElementById(`${eqId}-sectional`).value;
+                
+                const iDays = getOverdueDays(iDate);
+                const sDays = getOverdueDays(sDate);
+                
+                // Incharge (Working Fiber) -> 180 Days
+                if (iDays !== null && iDays > 180) {
+                    setOverdueWarning(`${eqId}-incharge`, true, iDays - 180);
+                } else {
+                    setOverdueWarning(`${eqId}-incharge`, false, 0);
+                }
+                
+                // Sectional (Spare Fiber) -> 90 Days from the MOST RECENT test of the two
+                let effectiveDays = null;
+                if (iDays !== null && sDays !== null) effectiveDays = Math.min(iDays, sDays);
+                else if (iDays !== null) effectiveDays = iDays;
+                else if (sDays !== null) effectiveDays = sDays;
+                
+                if (effectiveDays !== null && effectiveDays > 90) {
+                    setOverdueWarning(`${eqId}-sectional`, true, effectiveDays - 90);
+                } else {
+                    setOverdueWarning(`${eqId}-sectional`, false, 0);
+                }
             }
         }
 
@@ -606,9 +609,35 @@
             container.innerHTML = "";
             
             eqTypes.forEach(eq => {
-                const isStm = eq.id === "STM-1";
-                const workLimitStr = isStm ? "(90 Days limit)" : "(180 Days limit)";
-                const spareLimitStr = "(90 Days limit)";
+                let fieldsHtml = '';
+                
+                if (eq.id === "STM-1") {
+                    fieldsHtml = `
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Joint Fiber testing with RCIL <span class="text-blue-500 no-print">(90 Days limit)</span></label>
+                            <input type="date" id="${eq.id}-incharge" onchange="updateEquipmentOverdueUI('${eq.id}')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Remarks</label>
+                            <input type="text" id="${eq.id}-rem" placeholder="Enter remarks..." class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        </div>
+                    `;
+                } else {
+                    fieldsHtml = `
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Testing by SSE/Incharge <span class="text-blue-500 no-print">(180 Days limit)</span></label>
+                            <input type="date" id="${eq.id}-incharge" onchange="updateEquipmentOverdueUI('${eq.id}')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                        </div>
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Testing by Sectional SSE/JE <span class="text-blue-500 no-print">(90 Days limit)</span></label>
+                            <input type="date" id="${eq.id}-sectional" onchange="updateEquipmentOverdueUI('${eq.id}')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Remarks</label>
+                            <input type="text" id="${eq.id}-rem" placeholder="Enter remarks..." class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        </div>
+                    `;
+                }
 
                 const card = `
                 <div class="border rounded-xl p-5 bg-slate-50 shadow-sm transition hover:shadow-md">
@@ -624,18 +653,7 @@
                     </div>
                     
                     <div id="${eq.id}-fields" class="space-y-4 transition-all duration-300">
-                        <div class="relative">
-                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Working Fiber Testing Date <span class="text-blue-500 no-print">${workLimitStr}</span></label>
-                            <input type="date" id="${eq.id}-work" onchange="checkOverdueUI('${eq.id}-work', this.value, 'work')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
-                        </div>
-                        <div class="relative">
-                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Spare Fiber Testing Date <span class="text-blue-500 no-print">${spareLimitStr}</span></label>
-                            <input type="date" id="${eq.id}-spare" onchange="checkOverdueUI('${eq.id}-spare', this.value, 'spare')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Remarks</label>
-                            <input type="text" id="${eq.id}-rem" placeholder="Enter remarks..." class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
-                        </div>
+                        ${fieldsHtml}
                     </div>
                 </div>`;
                 container.innerHTML += card;
@@ -651,10 +669,12 @@
             const tbody = document.getElementById("reportTableBody");
             const noMsg = document.getElementById("noOverdueMsg");
             tbody.innerHTML = "";
+            
             let reportRows = [];
 
             for (let inc in db) {
                 if (incFilter !== "ALL" && inc !== incFilter) continue;
+
                 for (let sec in db[inc]) {
                     for (let block in db[inc][sec]) {
                         eqTypes.forEach(eq => {
@@ -663,18 +683,37 @@
                             const record = db[inc][sec][block][eq.id];
                             if (!record || !record.isApplicable) return;
                             
-                            const checkAndAddRow = (dateStr, fiberTypeLabel, fiberTypeKey) => {
+                            const checkAndAddRow = (dateStr, testTypeLabel, isOverdueCheck, daysOverdueVal) => {
                                 if (!dateStr) return; 
-                                let limit = (eq.id === 'STM-1') ? 90 : (fiberTypeKey === 'work' ? 180 : 90);
-                                const days = getOverdueDays(dateStr);
-                                
-                                if (days > limit) {
-                                    reportRows.push({ inc, sec, block, eqName: eq.name, fiberTypeLabel, dateStr, daysOverdue: days - limit });
+                                if (isOverdueCheck) {
+                                    reportRows.push({
+                                        inc, sec, block, 
+                                        eqName: eq.name, 
+                                        testTypeLabel, 
+                                        dateStr, 
+                                        daysOverdue: daysOverdueVal
+                                    });
                                 }
                             };
 
-                            checkAndAddRow(record.workingDate, "Working Fiber", 'work');
-                            checkAndAddRow(record.spareDate, "Spare Fiber", 'spare');
+                            if (eq.id === 'STM-1') {
+                                const days = getOverdueDays(record.inchargeDate);
+                                checkAndAddRow(record.inchargeDate, "Joint Fiber with RCIL", (days !== null && days > 90), days - 90);
+                            } else {
+                                const iDays = getOverdueDays(record.inchargeDate);
+                                const sDays = getOverdueDays(record.sectionalDate);
+                                
+                                // Incharge working logic
+                                checkAndAddRow(record.inchargeDate, "SSE/Incharge", (iDays !== null && iDays > 180), iDays - 180);
+                                
+                                // Sectional spare logic (Min of Both)
+                                let effDays = null;
+                                if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                                else if (iDays !== null) effDays = iDays;
+                                else if (sDays !== null) effDays = sDays;
+                                
+                                checkAndAddRow(record.sectionalDate, "Sectional SSE/JE", (effDays !== null && effDays > 90), effDays - 90);
+                            }
                         });
                     }
                 }
@@ -683,7 +722,11 @@
             if (reportRows.length > 0) {
                 noMsg.classList.add("hidden");
                 tbody.parentElement.classList.remove("hidden");
-                reportRows.sort((a, b) => sortDir === 'desc' ? b.daysOverdue - a.daysOverdue : a.daysOverdue - b.daysOverdue);
+
+                reportRows.sort((a, b) => {
+                    return sortDir === 'desc' ? b.daysOverdue - a.daysOverdue : a.daysOverdue - b.daysOverdue;
+                });
+
                 reportRows.forEach(row => {
                     const tr = document.createElement("tr");
                     tr.className = "hover:bg-red-50 transition border-b border-gray-200";
@@ -692,12 +735,13 @@
                         <td class="py-3 px-4 font-bold text-gray-800">${row.sec}</td>
                         <td class="py-3 px-4 font-bold text-gray-800">${row.block}</td>
                         <td class="py-3 px-4 text-blue-800 font-semibold"><span class="bg-blue-100 px-2 py-1 rounded text-xs">${row.eqName}</span></td>
-                        <td class="py-3 px-4 text-gray-600">${row.fiberTypeLabel}</td>
+                        <td class="py-3 px-4 text-gray-600">${row.testTypeLabel}</td>
                         <td class="py-3 px-4 font-medium text-gray-800">${row.dateStr}</td>
                         <td class="py-3 px-4 text-red-600 font-bold bg-red-50">⚠️ ${row.daysOverdue} Days</td>
                     `;
                     tbody.appendChild(tr);
                 });
+
             } else {
                 noMsg.classList.remove("hidden");
                 tbody.parentElement.classList.add("hidden");
@@ -716,15 +760,27 @@
                             const record = db[inc][sec][block][eq.id];
                             if (!record || !record.isApplicable) return;
                             
-                            // Color code if overdue
-                            const workLimit = (eq.id === 'STM-1') ? 90 : 180;
-                            const spareLimit = 90;
+                            const isStm = (eq.id === 'STM-1');
                             
-                            const isWorkOverdue = record.workingDate && getOverdueDays(record.workingDate) > workLimit;
-                            const isSpareOverdue = record.spareDate && getOverdueDays(record.spareDate) > spareLimit;
-
-                            const workHtml = isWorkOverdue ? `<span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200">${record.workingDate} ⚠️</span>` : record.workingDate;
-                            const spareHtml = isSpareOverdue ? `<span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200">${record.spareDate} ⚠️</span>` : record.spareDate;
+                            const iDays = getOverdueDays(record.inchargeDate);
+                            const sDays = getOverdueDays(record.sectionalDate);
+                            
+                            const iLimit = isStm ? 90 : 180;
+                            const isIOver = iDays !== null && iDays > iLimit;
+                            const iHtml = isIOver ? `<span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200">${record.inchargeDate} ⚠️</span>` : record.inchargeDate;
+                            
+                            let sHtml = '-';
+                            if (isStm) {
+                                sHtml = '<span class="text-gray-400 italic">N/A</span>';
+                            } else {
+                                let effDays = null;
+                                if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                                else if (iDays !== null) effDays = iDays;
+                                else if (sDays !== null) effDays = sDays;
+                                
+                                const isSOver = effDays !== null && effDays > 90;
+                                sHtml = isSOver ? `<span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200">${record.sectionalDate} ⚠️</span>` : record.sectionalDate;
+                            }
 
                             const tr = document.createElement("tr");
                             tr.className = "hover:bg-blue-50 transition border-b border-gray-200 search-row";
@@ -733,8 +789,8 @@
                                 <td class="py-3 px-4 font-bold text-gray-800">${sec}</td>
                                 <td class="py-3 px-4 font-bold text-gray-800 block-name">${block}</td>
                                 <td class="py-3 px-4 text-blue-800 font-semibold"><span class="bg-blue-100 px-2 py-1 rounded text-xs">${eq.name}</span></td>
-                                <td class="py-3 px-4 text-gray-800">${workHtml || '-'}</td>
-                                <td class="py-3 px-4 text-gray-800">${spareHtml || '-'}</td>
+                                <td class="py-3 px-4 text-gray-800">${iHtml || '-'}</td>
+                                <td class="py-3 px-4 text-gray-800">${sHtml || '-'}</td>
                                 <td class="py-3 px-4 text-gray-500 italic text-xs max-w-xs truncate" title="${record.remarks}">${record.remarks || '-'}</td>
                             `;
                             tbody.appendChild(tr);
@@ -817,24 +873,36 @@
                         if (!db[currentInc][currentSec][blockSection]) {
                             db[currentInc][currentSec][blockSection] = {};
                             eqTypes.forEach(eq => {
-                                db[currentInc][currentSec][blockSection][eq.id] = { isApplicable: false, workingDate: "", spareDate: "", remarks: "" };
+                                db[currentInc][currentSec][blockSection][eq.id] = { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
                             });
                         }
 
-                        const eqMap = { "EI": { w: 4, s: 5, r: 6 }, "MSDAC": { w: 7, s: 8, r: 9 }, "IB": { w: 10, s: 11, r: 12 }, "STM-1": { w: 13, s: 14, r: 15 } };
+                        // Explicit Mapping to the 15 column format
+                        const eqMap = {
+                            "EI": { i: 4, s: 5, r: 6 },
+                            "MSDAC": { i: 7, s: 8, r: 9 },
+                            "IB": { i: 10, s: 11, r: 12 },
+                            "STM-1": { i: 13, s: null, r: 14 }
+                        };
 
                         eqTypes.forEach(eq => {
                             const mapping = eqMap[eq.id];
-                            if (cols.length > mapping.w) {
-                                const wDate = formatToInputDate(cols[mapping.w]);
-                                const sDate = formatToInputDate(cols[mapping.s]);
-                                const rem = cols[mapping.r] || "";
-                                const isApp = !!(wDate || sDate || rem);
+                            if (cols.length > mapping.i) {
+                                const iDate = formatToInputDate(cols[mapping.i]);
+                                let sDate = "";
+                                if (mapping.s !== null && cols.length > mapping.s) {
+                                    sDate = formatToInputDate(cols[mapping.s]);
+                                }
+                                const rem = (mapping.r !== null && cols.length > mapping.r) ? cols[mapping.r] : "";
                                 
-                                db[currentInc][currentSec][blockSection][eq.id].isApplicable = isApp;
-                                db[currentInc][currentSec][blockSection][eq.id].workingDate = wDate;
-                                db[currentInc][currentSec][blockSection][eq.id].spareDate = sDate;
-                                db[currentInc][currentSec][blockSection][eq.id].remarks = rem;
+                                const isApp = !!(iDate || sDate || rem);
+                                
+                                db[currentInc][currentSec][blockSection][eq.id] = { 
+                                    isApplicable: isApp, 
+                                    inchargeDate: iDate, 
+                                    sectionalDate: sDate, 
+                                    remarks: rem 
+                                };
                             }
                         });
                         updatedCount++;
@@ -844,7 +912,6 @@
                 saveDbToStorage();
                 alert(`CSV Imported successfully! Extracted data for ${updatedCount} valid records.`);
                 
-                // Refresh data
                 populateInitialDropdowns();
                 if (document.getElementById("blockSelect").value) loadDataForSection();
                 generateAllDataReport();
@@ -855,9 +922,9 @@
         }
 
         function exportData(onlyOverdue) {
-            let csvContent = "OFC Testing Dates and overdue Report(MSDAC/EI/IBS/STM),,,,,,,,,,,,,,,\n";
-            csvContent += "INCHARGE SSE / Section,SECTIONAL SSE/JE,Sl No of sec.SSE/Tele wise,Block Section/IB/ABS HUTs,EI,,,MSDAC,,,IB,,,STM-1 with RCIL,,\n";
-            csvContent += ",,,, working fiber Testing Date, spare fiber Testing Date,Remarks, working fiber Testing Date, spare fiber Testing Date,Remarks, working fiber Testing Date, spare fiber Testing Date,Remarks, working fiber Testing Date, spare fiber Testing Date,Remarks \n";
+            let csvContent = "OFC Testing Dates and overdue Report(MSDAC/EI/IBS/STM),,,,,,,,,,,,,,\n";
+            csvContent += "INCHARGE SSE / Section,SECTIONAL SSE/JE,Sl No of sec.SSE/Tele wise,Block Section/IB/ABS HUTs,EI,,,MSDAC,,,IB,,,STM-1 with RCIL,\n";
+            csvContent += ",,,, working fiber and spae fibers Testing by SSE/Incharge Date, spare  fiber Testing bySectional SSE/JEDate,Remarks , working fiber and spae fibers Testing by SSE/Incharge Date, spare  fiber Testing bySectional SSE/JEDate,Remarks , working fiber and spae fibers Testing by SSE/Incharge Date, spare  fiber Testing bySectional SSE/JEDate,Remarks ,Joint Fiber testing with RCIL,Remarks \n";
 
             for (let inc in db) {
                 let firstRowForInc = true;
@@ -873,25 +940,51 @@
                             eqTypes.forEach(eq => {
                                 const record = db[inc][sec][block][eq.id];
                                 if (record && record.isApplicable) {
-                                    const workLimit = (eq.id === 'STM-1') ? 90 : 180;
-                                    const spareLimit = 90;
-                                    if (getOverdueDays(record.workingDate) > workLimit) isRowOverdue = true;
-                                    if (getOverdueDays(record.spareDate) > spareLimit) isRowOverdue = true;
+                                    const iDays = getOverdueDays(record.inchargeDate);
+                                    const sDays = getOverdueDays(record.sectionalDate);
+
+                                    if (eq.id === 'STM-1') {
+                                        if (iDays !== null && iDays > 90) isRowOverdue = true;
+                                    } else {
+                                        if (iDays !== null && iDays > 180) isRowOverdue = true;
+                                        
+                                        let effDays = null;
+                                        if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                                        else if (iDays !== null) effDays = iDays;
+                                        else if (sDays !== null) effDays = sDays;
+                                        
+                                        if (effDays !== null && effDays > 90) isRowOverdue = true;
+                                    }
                                 }
                             });
                         }
                         if (onlyOverdue && !isRowOverdue) continue;
 
-                        let row = [firstRowForInc ? inc : "", firstRowForSec ? sec : "", slNo++, `"${block}"`];
+                        let row = [
+                            firstRowForInc ? inc : "", 
+                            firstRowForSec ? sec : "", 
+                            slNo++, 
+                            `"${block}"`
+                        ];
 
                         eqTypes.forEach(eq => {
-                            let record = db[inc][sec][block][eq.id] || { isApplicable: false, workingDate: "", spareDate: "", remarks: "" };
+                            let record = db[inc][sec][block][eq.id] || { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
+                            
                             if (record.isApplicable) {
-                                row.push(record.workingDate);
-                                row.push(record.spareDate);
-                                row.push(record.remarks ? `"${record.remarks.replace(/"/g, '""')}"` : "");
+                                if (eq.id === 'STM-1') {
+                                    row.push(record.inchargeDate);
+                                    row.push(record.remarks ? `"${record.remarks.replace(/"/g, '""')}"` : "");
+                                } else {
+                                    row.push(record.inchargeDate);
+                                    row.push(record.sectionalDate);
+                                    row.push(record.remarks ? `"${record.remarks.replace(/"/g, '""')}"` : "");
+                                }
                             } else {
-                                row.push(""); row.push(""); row.push("");
+                                if (eq.id === 'STM-1') {
+                                    row.push(""); row.push("");
+                                } else {
+                                    row.push(""); row.push(""); row.push("");
+                                }
                             }
                         });
 

@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OFC Testing Dates & Overdue Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .overdue-input {
+            border-color: #ef4444 !important; 
+            background-color: #fef2f2 !important; 
+            color: #b91c1c !important; 
+        }
+        .overdue-text {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: block;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .equipment-disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        /* --- PRINT CSS --- */
+        @media print {
+            body, html { height: auto !important; background-color: white !important; display: block !important; }
+            main { height: auto !important; overflow: visible !important; display: block !important; padding: 0 !important; margin: 0 !important; }
+            .overflow-x-auto, .overflow-auto { overflow: visible !important; }
+            header, .no-print { display: none !important; }
+            .shadow, .shadow-md, .shadow-sm, .shadow-lg, .rounded-xl { box-shadow: none !important; border: 1px solid #ddd !important; border-radius: 0 !important; }
+            .border-t-4 { border-top: 2px solid #333 !important; }
+            select, input { appearance: none; border: none !important; background: transparent !important; font-weight: bold; color: #000 !important; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #aaa !important; padding: 8px !important; color: #000 !important; }
+            thead th { background-color: #f0f0f0 !important; color: #000 !important; }
+            tr { page-break-inside: avoid; }
+            .grid { display: block !important; }
+            .grid > div { margin-bottom: 20px; page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans h-screen flex flex-col">
+
+    <header class="bg-blue-800 text-white p-4 shadow-md flex-shrink-0">
+        <div class="container mx-auto flex flex-col lg:flex-row justify-between items-center gap-4">
+            <h1 class="text-xl md:text-2xl font-bold whitespace-nowrap">BZA DIV OFC Tracker</h1>
+            
+            <div class="flex flex-wrap items-center gap-2 md:gap-4 justify-center">
+                <button onclick="switchTab('entry')" id="btn-tab-entry" class="bg-blue-500 px-3 py-2 rounded font-semibold transition text-sm shadow">Data Entry</button>
+                <button onclick="switchTab('report')" id="btn-tab-report" class="bg-blue-900 hover:bg-blue-700 px-3 py-2 rounded font-semibold transition text-gray-300 text-sm shadow">Overdue Report</button>
+                <button onclick="switchTab('alldata')" id="btn-tab-alldata" class="bg-blue-900 hover:bg-blue-700 px-3 py-2 rounded font-semibold transition text-gray-300 text-sm shadow">View All Data</button>
+                
+                <div class="border-l border-blue-600 pl-4 flex flex-wrap gap-2 items-center">
+                    <button onclick="window.print()" class="bg-gray-100 text-blue-900 hover:bg-gray-300 px-3 py-2 rounded font-bold transition text-sm shadow flex items-center">
+                        🖨️ Print
+                    </button>
+                    <label class="cursor-pointer bg-green-600 hover:bg-green-500 px-3 py-2 rounded font-semibold transition text-sm flex items-center shadow text-white">
+                        <span>📥 Import CSV</span>
+                        <input type="file" id="fileUpload" accept=".csv" onchange="handleFileUpload(event)">
+                    </label>
+                    <button onclick="exportData(false)" class="bg-amber-600 hover:bg-amber-500 px-3 py-2 rounded font-semibold transition text-sm shadow text-white">
+                        📤 Export Full
+                    </button>
+                    <button onclick="exportData(true)" class="bg-red-600 hover:bg-red-500 px-3 py-2 rounded font-semibold transition text-sm shadow text-white">
+                        🚨 Export Overdue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto flex-grow p-4 overflow-auto">
+        
+        <section id="tab-entry" class="space-y-6 block">
+            <div class="bg-white p-6 rounded-xl shadow border-t-4 border-blue-600">
+                <h2 class="text-xl font-bold mb-4 border-b pb-2 text-blue-800 no-print">Select Section</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">INCHARGE SSE / Section</label>
+                        <select id="inchargeSelect" onchange="populateSectionalSelect()" class="w-full border-gray-300 border rounded p-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm">
+                            <option value="">-- Select Incharge --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1">SECTIONAL SSE / JE</label>
+                        <select id="sectionalSelect" onchange="populateBlockSections()" disabled class="w-full border-gray-300 border rounded p-2 bg-gray-100 focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-not-allowed">
+                            <option value="">-- Select Sectional --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-700 mb-1 no-print">Block Section / IB / ABS HUTs</label>
+                        <div class="flex gap-2">
+                            <select id="blockSelect" onchange="loadDataForSection()" disabled class="w-full border-gray-300 border rounded p-2 bg-gray-100 focus:ring-blue-500 focus:border-blue-500 shadow-sm cursor-not-allowed">
+                                <option value="">-- Select Block --</option>
+                            </select>
+                            <button id="addBlockBtn" onclick="addNewBlock()" disabled class="bg-gray-200 text-gray-500 px-3 py-2 rounded shadow-sm font-bold transition whitespace-nowrap cursor-not-allowed no-print" title="Add Custom Block Section">
+                                + New
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dataForm" class="hidden bg-white p-6 rounded-xl shadow space-y-6 border-t-4 border-green-500">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 gap-4">
+                    <h2 class="text-xl font-bold text-gray-800" id="equipmentHeader">Equipment Testing Data</h2>
+                    <button onclick="saveData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded font-bold transition shadow-lg transform active:scale-95 w-full sm:w-auto no-print">💾 Save Changes</button>
+                </div>
+                
+                <p class="text-sm text-gray-600 bg-blue-50 p-3 rounded border border-blue-100 border-l-4 border-l-blue-400 no-print">
+                    ℹ️ <b>Instructions:</b> Testing Periodicity for EI/MSDAC/IB is <b>180 Days (SSE/Incharge)</b> and <b>90 Days (Sectional SSE/JE)</b>. The 90-day timer resets if either the Incharge or Sectional JE tests the fiber.<br>
+                    <span class="text-red-600 font-semibold">Note: For STM-1, Joint Fiber testing with RCIL has a strict 120 Days limit.</span>
+                </p>
+                
+                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6" id="equipmentGrids">
+                    </div>
+            </div>
+        </section>
+
+        <section id="tab-report" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-xl shadow border-t-4 border-red-500">
+                <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-4 border-b pb-4 gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-red-700">🚨 Overdue Testing Report</h2>
+                        <p class="text-xs font-bold text-gray-500 mt-1">Limits: Incharge > 180 Days | Sectional > 90 Days <span class="text-red-500">(STM-1: Joint > 120 Days)</span></p>
+                    </div>
+                    
+                    <div class="flex flex-wrap items-center gap-2 no-print">
+                        <div class="flex items-center space-x-2 bg-gray-50 p-2 rounded border">
+                            <label class="font-bold text-sm text-gray-700">Incharge:</label>
+                            <select id="reportSseSelect" onchange="generateReport()" class="border-gray-300 border rounded p-1 text-sm bg-white font-semibold text-blue-800">
+                                <option value="ALL">All Sections</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-gray-50 p-2 rounded border">
+                            <label class="font-bold text-sm text-gray-700">Equipment:</label>
+                            <select id="reportEqSelect" onchange="generateReport()" class="border-gray-300 border rounded p-1 text-sm bg-white font-semibold text-blue-800">
+                                <option value="ALL">All Equipment</option>
+                                <option value="EI">EI</option>
+                                <option value="MSDAC">MSDAC</option>
+                                <option value="IB">IB</option>
+                                <option value="STM-1">STM-1 with RCIL</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2 bg-gray-50 p-2 rounded border">
+                            <label class="font-bold text-sm text-gray-700">Sort By:</label>
+                            <select id="reportSortSelect" onchange="generateReport()" class="border-gray-300 border rounded p-1 text-sm bg-white font-semibold text-blue-800">
+                                <option value="desc">Severity (High to Low)</option>
+                                <option value="asc">Severity (Low to High)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto rounded border w-full">
+                    <table class="min-w-full bg-white">
+                        <thead class="bg-slate-800 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">INCHARGE SSE</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">SECTIONAL SSE/JE</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Block Section</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Eq.</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Incharge Date</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold text-blue-300 whitespace-nowrap bg-slate-700">Days Since<br>Incharge Test</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Sectional Date</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold text-blue-300 whitespace-nowrap bg-slate-700">Days Since<br>Sectional Test</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold text-red-400 whitespace-nowrap">Overdue Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody" class="text-sm divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+                <div id="noOverdueMsg" class="hidden text-center p-6 bg-green-50 text-green-700 rounded border border-green-200 mt-4">
+                    <span class="text-2xl block mb-2">✅</span>
+                    <span class="font-bold">All Good!</span> No overdue testing found for the selected filters.
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-alldata" class="space-y-6 hidden">
+            <div class="bg-white p-6 rounded-xl shadow border-t-4 border-purple-600">
+                <div class="flex justify-between items-center mb-4 border-b pb-4 gap-4">
+                    <h2 class="text-xl font-bold text-purple-800">📊 Master Database View</h2>
+                    <input type="text" id="masterSearch" placeholder="Search..." class="border p-2 rounded no-print text-sm font-semibold" onkeyup="filterMasterTable()">
+                </div>
+                <div class="overflow-x-auto rounded border w-full">
+                    <table class="min-w-full bg-white" id="masterTable">
+                        <thead class="bg-slate-800 text-white">
+                            <tr>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">INCHARGE SSE</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">SECTIONAL SSE/JE</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Block Section</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Eq.</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Incharge Date</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold text-blue-300 whitespace-nowrap bg-slate-700">Days Since<br>Incharge</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Sectional Date</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold text-blue-300 whitespace-nowrap bg-slate-700">Days Since<br>Sectional</th>
+                                <th class="py-3 px-4 text-left text-sm font-semibold">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allDataTableBody" class="text-sm divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        const sectionHierarchy = {
+            "SSE/T/NLR": {
+                "JE/T/NLR": ["TMC - KJJ","KJJ - PGU","PGU - NLR","NLR - VDE"],
+                "SSE/T/GDR": ["VDE - HUT 6","HUT 6 - VKT","VKT - KMLP","VKT - VR JN","KMLP - MBL","KMLP - VR JN","MBL - GDR"]
+            },
+            "SSE/T/BTTR": {
+                "JE/T/BTTR": ["TMC-AXR","AXR-BTTR","BTTR-SVPM","SVPM-KVZ IB"],
+                "JE/T/KVZ": ["KVZ-SVPM IB","KVZ-TTU IB","TTU-KVZ IB","UPD-TTU IB","TTU-UPD IB","UPD-SKM IB","SKM-UPD IB"]
+            },
+            "SSE/T/OGL": {
+                "JE/T/OGL": ["SKM YARD","SKM-TNR IB","TNR-SKM IB","TNR YARD","TNR-SDM IB","SDM-TNR IB","SDM YARD","SDM-OGL IB","OGL-SDM IB","OGL YARD","OGL-KRV IB","KRV-OGL IB","KRV YARD","KRV-ANB"],
+                "JE/T/CLX": ["ANB YARD","ANB-UGD IB","UGD-ANB IB","UGD YARD","UGD-CJM","CJM YARD","CJM-VTM DN IB","VTM-CJM UP IB","VTM YARD","VTM-CLX IB","CLX-VTM IB","CLX YARD"]
+            },
+            "SSE/T/TEL": {
+                "JE/T/BPP": ["CLX-SPF","SPF-BPP","BPP-APL","APL-NDO","NDO-TSR"],
+                "JE/T/TEL": ["TSR-TEL","TEL-DIG","DIG-PVD","PVD-KCC"]
+            },
+            "SSE/T/M/BZA": {
+                "SSE/T/KI": ["KI R/R-HUT 1","KI R/R-HUT 2","KI HUT 2 - KI HUT 3","KI-RYP","RYP R/R - HUT 1","RYP R/R - HUT 2","RYP HUT 2 - HUT 3","KI-RYP WS","RYP WS-RYP","RYP-NWBH","NWBH-CR.Cabin","NWBH-D Cabin","NWBH-Bulb Cabin","CR Cabin - D Cabin","CR Cabin - Bulb Cabin","D Cabin - D Goomty","BULB Cabin - VNEC","D Goomty - F Cabin","F Cabin - F Goomty","BZA-KCC"],
+                "JE/T/M/BZA": ["BZA-VNEC","VNEC-MDUN","MDUN-RMV","RMV-NDM","BZA-GALA","VNEC-Goomy 1","Goomty 1 - Goomty 2","Goomty 2 - GALA","GALA - MBD","GALA - Goomty 3","Goomty 3 - Goomty 4","Goomty 4 - Goomty 5","Goomty 5 - MBD","MBD - New Goomty (Near LC 319)","MBD - GWM","MBD - Goomty 6","Goomty 6 - Goomty 7","Goomty 7 - Goomty 8","Goomty 8 - Goomty 9","Goomty 9- GWM","GWM - PAVP","PAVP - ABS Hut near LC 327","ABS Hut near LC 327 - TOU","TOU - NZD","TOU - ABS Hut near LC 332","ABS Hut near LC 332 - NZD"]
+            },
+            "SSE/T/EE": {
+                "SSE/T/NDD": ["CU-KVR","CU-NDD","NDD-NBM","TDD-NBM"],
+                "JE/T/TDD": ["TDD-ABS HUT","ABS HUT-BPY","BPY-ABS HUT at LC 367","ABS HUT at LC 367-ABS HUT UNGT","ABS HUT UNGT-CEL","CEL-ABS HUT KKRM","ABS HUT KKRM-PUA","PUA-ABS HUT LC 362","ABS HUT LC 362-BMD"],
+                "JE/T/EE": ["BMD-DEL","DEL-EE","EE-VAT","VAT-NZD"]
+            },
+            "SSE/T/RJY": {
+                "JE/T/RJY": ["KVR-RJY","KVR-GVN","GVN-RJY","RJY-KYM","KYM-DWP","DWP-APT"]
+            },
+            "SSE/T/SLO": {
+                "JE/T/SLO": ["APT - BVL","BVL - MPU","MPU - SLO","SLO - PAP"],
+                "JE/T/SW/COA": ["SLO - SPVM","SPVM - CCT","CCT-NCOA","NCOA-COA"]
+            },
+            "SSE/T/TUNI": {
+                "JE/T/TUNI": ["PAP - GLP","GLP - RVD","RVD - ANV","ANV - HVM","HVM - TUNI"],
+                "JE/T/YLM": ["TUNI - GLU","GLU - NRP","NRP - REG","REG - YLM","YLM STATION EI"],
+                "SSE/T/AKP": ["YLM - NASP","NASP - BVM","BVM - AKP","AKP -THY","THY - DVD"]
+            },
+            "SSE/T/GDV": {
+                "SSE/T/GDV II": ["NDM-UPL","UPL-IDP","IDP-GDV","GDV-OTR","OTR--MDVL","MDVL-KKLR","KKLR-PLVA (halt)"],
+                "SSE/TGDV": ["GDV Yard","GDV-GVL","GVL-KVM","KVM-PAV","PAV-CLU","CLU-MTM","MTM Yard"]
+            },
+            "SSE/T/BVRM": {
+                "SSE/T/BVRM": ["KKLR-AKVD","AKVD-UNDI","UNDI-BVRM","BVRM-PAGM","PAGM-VVM","VVM-PKO","PKO-NS","NS YARD"],
+                "JE/T/TNKU": ["BVRM-AVLI","AVLI-AL","AL-TNKU","TNKU-KLDI","KLDI-NDD","BVRM YARD"]
+            }
+        };
+
+        const eqTypes = [
+            { name: "EI", id: "EI" },
+            { name: "MSDAC", id: "MSDAC" },
+            { name: "IB", id: "IB" },
+            { name: "STM-1 with RCIL", id: "STM-1" }
+        ];
+        
+        let db = JSON.parse(localStorage.getItem('ofcDb_v10_exact')); 
+        
+        if (!db) {
+            db = {};
+            for (let inc in sectionHierarchy) {
+                db[inc] = {};
+                for (let sec in sectionHierarchy[inc]) {
+                    db[inc][sec] = {};
+                    sectionHierarchy[inc][sec].forEach(block => {
+                        db[inc][sec][block] = {};
+                        eqTypes.forEach(eq => {
+                            db[inc][sec][block][eq.id] = { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
+                        });
+                    });
+                }
+            }
+            saveDbToStorage();
+        }
+
+        function saveDbToStorage() {
+            localStorage.setItem('ofcDb_v10_exact', JSON.stringify(db));
+        }
+
+        function populateInitialDropdowns() {
+            const inchargeSelect = document.getElementById("inchargeSelect");
+            const reportSseSelect = document.getElementById("reportSseSelect");
+
+            inchargeSelect.innerHTML = '<option value="">-- Select Incharge --</option>';
+            reportSseSelect.innerHTML = '<option value="ALL">All Sections</option>';
+
+            const uniqueIncharges = Object.keys(db).sort();
+            uniqueIncharges.forEach(inc => {
+                inchargeSelect.add(new Option(inc, inc));
+                reportSseSelect.add(new Option(inc, inc));
+            });
+        }
+
+        window.onload = function() {
+            populateInitialDropdowns();
+            buildEquipmentUI();
+            generateAllDataReport(); 
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-entry').style.display = tab === 'entry' ? 'block' : 'none';
+            document.getElementById('tab-report').style.display = tab === 'report' ? 'block' : 'none';
+            document.getElementById('tab-alldata').style.display = tab === 'alldata' ? 'block' : 'none';
+            
+            const activeClass = "bg-blue-500 px-3 py-2 rounded font-semibold transition text-white text-sm shadow";
+            const inactiveClass = "bg-blue-900 hover:bg-blue-700 px-3 py-2 rounded font-semibold transition text-gray-300 text-sm shadow";
+
+            document.getElementById('btn-tab-entry').className = tab === 'entry' ? activeClass : inactiveClass;
+            document.getElementById('btn-tab-report').className = tab === 'report' ? activeClass : inactiveClass;
+            document.getElementById('btn-tab-alldata').className = tab === 'alldata' ? activeClass : inactiveClass;
+
+            if (tab === 'report') { generateReport(); }
+            if (tab === 'alldata') { generateAllDataReport(); }
+        }
+
+        function populateSectionalSelect() {
+            const inc = document.getElementById("inchargeSelect").value;
+            const secSelect = document.getElementById("sectionalSelect");
+            const blockSelect = document.getElementById("blockSelect");
+            const addBtn = document.getElementById("addBlockBtn");
+            
+            secSelect.innerHTML = '<option value="">-- Select Sectional --</option>';
+            blockSelect.innerHTML = '<option value="">-- Select Block --</option>';
+            document.getElementById("dataForm").classList.add("hidden");
+            
+            blockSelect.disabled = true; blockSelect.classList.add("bg-gray-100", "cursor-not-allowed"); blockSelect.classList.remove("bg-white");
+            addBtn.disabled = true; addBtn.classList.add("bg-gray-200", "text-gray-500", "cursor-not-allowed");
+
+            if (inc) {
+                secSelect.disabled = false;
+                secSelect.classList.remove("bg-gray-100", "cursor-not-allowed");
+                secSelect.classList.add("bg-white");
+
+                const sections = Object.keys(db[inc] || {}).sort();
+                sections.forEach(sec => {
+                    secSelect.add(new Option(sec, sec));
+                });
+            } else {
+                secSelect.disabled = true;
+                secSelect.classList.add("bg-gray-100", "cursor-not-allowed");
+                secSelect.classList.remove("bg-white");
+            }
+        }
+
+        function populateBlockSections() {
+            const inc = document.getElementById("inchargeSelect").value;
+            const sec = document.getElementById("sectionalSelect").value;
+            const blockSelect = document.getElementById("blockSelect");
+            const addBtn = document.getElementById("addBlockBtn");
+            
+            blockSelect.innerHTML = '<option value="">-- Select Block --</option>';
+            document.getElementById("dataForm").classList.add("hidden");
+            
+            if (inc && sec) {
+                blockSelect.disabled = false;
+                blockSelect.classList.remove("bg-gray-100", "cursor-not-allowed");
+                blockSelect.classList.add("bg-white");
+                
+                addBtn.disabled = false;
+                addBtn.classList.remove("bg-gray-200", "text-gray-500", "cursor-not-allowed");
+                addBtn.classList.add("bg-green-600", "text-white", "hover:bg-green-500");
+
+                const blocks = Object.keys(db[inc][sec] || {});
+                blocks.forEach(block => {
+                    blockSelect.add(new Option(block, block));
+                });
+            } else {
+                blockSelect.disabled = true;
+                blockSelect.classList.add("bg-gray-100", "cursor-not-allowed");
+                blockSelect.classList.remove("bg-white");
+                
+                addBtn.disabled = true;
+                addBtn.classList.add("bg-gray-200", "text-gray-500", "cursor-not-allowed");
+                addBtn.classList.remove("bg-green-600", "text-white", "hover:bg-green-500");
+            }
+        }
+
+        function addNewBlock() {
+            const inc = document.getElementById("inchargeSelect").value;
+            const sec = document.getElementById("sectionalSelect").value;
+            if (!inc || !sec) return;
+            
+            const newBlock = prompt(`Enter new Block Section name for:\n${sec}`);
+            if (newBlock && newBlock.trim() !== "") {
+                const blockName = newBlock.trim();
+                if(db[inc][sec][blockName]) {
+                    alert("This Block Section already exists!");
+                    document.getElementById("blockSelect").value = blockName;
+                    loadDataForSection();
+                    return;
+                }
+                
+                db[inc][sec][blockName] = {};
+                eqTypes.forEach(eq => {
+                    db[inc][sec][blockName][eq.id] = { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
+                });
+                
+                saveDbToStorage();
+                populateBlockSections();
+                document.getElementById("blockSelect").value = blockName;
+                loadDataForSection();
+            }
+        }
+
+        function loadDataForSection() {
+            const inc = document.getElementById("inchargeSelect").value;
+            const sec = document.getElementById("sectionalSelect").value;
+            const block = document.getElementById("blockSelect").value;
+            
+            if (!inc || !sec || !block) {
+                document.getElementById("dataForm").classList.add("hidden");
+                return;
+            }
+
+            document.getElementById("dataForm").classList.remove("hidden");
+            document.getElementById("equipmentHeader").innerText = `Equipment Data: ${block}`;
+            
+            const record = db[inc][sec][block];
+
+            eqTypes.forEach(eq => {
+                const isAppCheckbox = document.getElementById(`${eq.id}-applicable`);
+                isAppCheckbox.checked = record[eq.id].isApplicable;
+                
+                document.getElementById(`${eq.id}-incharge`).value = record[eq.id].inchargeDate;
+                if (eq.id !== 'STM-1') {
+                    document.getElementById(`${eq.id}-sectional`).value = record[eq.id].sectionalDate;
+                }
+                document.getElementById(`${eq.id}-rem`).value = record[eq.id].remarks;
+                
+                toggleEquipmentUI(eq.id); 
+            });
+        }
+
+        function toggleEquipmentUI(eqId) {
+            const isApplicable = document.getElementById(`${eqId}-applicable`).checked;
+            const fieldsContainer = document.getElementById(`${eqId}-fields`);
+            const inputs = fieldsContainer.querySelectorAll('input');
+            
+            if (isApplicable) {
+                fieldsContainer.classList.remove('equipment-disabled');
+                inputs.forEach(input => input.disabled = false);
+            } else {
+                fieldsContainer.classList.add('equipment-disabled');
+                inputs.forEach(input => input.disabled = true);
+            }
+            updateEquipmentOverdueUI(eqId); 
+        }
+
+        function saveData() {
+            const inc = document.getElementById("inchargeSelect").value;
+            const sec = document.getElementById("sectionalSelect").value;
+            const block = document.getElementById("blockSelect").value;
+            if (!inc || !sec || !block) return;
+
+            const btn = document.querySelector('button[onclick="saveData()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Saving...";
+
+            eqTypes.forEach(eq => {
+                const isApp = document.getElementById(`${eq.id}-applicable`).checked;
+                db[inc][sec][block][eq.id] = {
+                    isApplicable: isApp,
+                    inchargeDate: isApp ? document.getElementById(`${eq.id}-incharge`).value : "",
+                    sectionalDate: (isApp && eq.id !== 'STM-1') ? document.getElementById(`${eq.id}-sectional`).value : "",
+                    remarks: isApp ? document.getElementById(`${eq.id}-rem`).value : ""
+                };
+                updateEquipmentOverdueUI(eq.id);
+            });
+
+            saveDbToStorage();
+            generateAllDataReport(); 
+            
+            btn.innerText = "✅ Saved!";
+            btn.classList.replace("bg-blue-600", "bg-green-600");
+            setTimeout(() => {
+                btn.innerText = originalText;
+                btn.classList.replace("bg-green-600", "bg-blue-600");
+            }, 2000);
+        }
+
+        function getOverdueDays(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return null;
+            const testDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            if (isNaN(testDate.getTime())) return null;
+            
+            const today = new Date();
+            today.setHours(0,0,0,0); 
+            return Math.floor((today.getTime() - testDate.getTime()) / (1000 * 60 * 60 * 24));
+        }
+
+        function setOverdueWarning(inputId, isOverdue, msg) {
+            const inputEl = document.getElementById(inputId);
+            if(!inputEl) return;
+            let spanEl = document.getElementById(`span-${inputId}`);
+            if (!spanEl) {
+                spanEl = document.createElement('span');
+                spanEl.id = `span-${inputId}`;
+                spanEl.className = 'overdue-text hidden font-bold';
+                inputEl.parentNode.appendChild(spanEl);
+            }
+            if (isOverdue) {
+                inputEl.classList.add('overdue-input');
+                spanEl.classList.remove('hidden');
+                spanEl.innerHTML = msg;
+            } else {
+                inputEl.classList.remove('overdue-input');
+                spanEl.classList.add('hidden');
+            }
+        }
+
+        // --- Rolling Days Update ---
+        function updateEquipmentOverdueUI(eqId) {
+            const isApp = document.getElementById(`${eqId}-applicable`).checked;
+            
+            if (!isApp) {
+                setOverdueWarning(`${eqId}-incharge`, false, "");
+                if (eqId !== 'STM-1') setOverdueWarning(`${eqId}-sectional`, false, "");
+                return;
+            }
+            
+            const iDateStr = document.getElementById(`${eqId}-incharge`).value;
+            const iDays = getOverdueDays(iDateStr);
+            
+            if (eqId === 'STM-1') {
+                if (iDays === null || iDays > 120) {
+                    setOverdueWarning(`${eqId}-incharge`, true, iDays === null ? "⚠️ Not Tested" : `⚠️ Overdue by ${iDays - 120} days`);
+                } else {
+                    setOverdueWarning(`${eqId}-incharge`, false, "");
+                }
+            } else {
+                const sDateStr = document.getElementById(`${eqId}-sectional`).value;
+                const sDays = getOverdueDays(sDateStr);
+                
+                // Incharge (180 days)
+                if (iDays === null || iDays > 180) {
+                    setOverdueWarning(`${eqId}-incharge`, true, iDays === null ? "⚠️ Not Tested" : `⚠️ Overdue by ${iDays - 180} days`);
+                } else {
+                    setOverdueWarning(`${eqId}-incharge`, false, "");
+                }
+                
+                // Sectional Reset Logic (Min of both dates)
+                let effDays = null;
+                if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                else if (iDays !== null) effDays = iDays;
+                else if (sDays !== null) effDays = sDays;
+
+                if (effDays === null || effDays > 90) {
+                    setOverdueWarning(`${eqId}-sectional`, true, effDays === null ? "⚠️ Not Tested" : `⚠️ Overdue by ${effDays - 90} days`);
+                } else {
+                    setOverdueWarning(`${eqId}-sectional`, false, "");
+                }
+            }
+        }
+
+        function buildEquipmentUI() {
+            const container = document.getElementById("equipmentGrids");
+            container.innerHTML = "";
+            
+            eqTypes.forEach(eq => {
+                let fieldsHtml = '';
+                
+                if (eq.id === "STM-1") {
+                    fieldsHtml = `
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-600 mb-1">Joint Fiber testing with RCIL <span class="text-blue-500 no-print">(120 Days limit)</span></label>
+                            <input type="date" id="${eq.id}-incharge" onchange="updateEquipmentOverdueUI('${eq.id}')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Remarks</label>
+                            <input type="text" id="${eq.id}-rem" placeholder="Enter remarks..." class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        </div>
+                    `;
+                } else {
+                    fieldsHtml = `
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">working fiber and spae fibers Testing by SSE/Incharge Date <span class="text-blue-500 no-print">(180 Days limit)</span></label>
+                            <input type="date" id="${eq.id}-incharge" onchange="updateEquipmentOverdueUI('${eq.id}')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                        </div>
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">spare fiber Testing bySectional SSE/JEDate <span class="text-blue-500 no-print">(90 Days limit)</span></label>
+                            <input type="date" id="${eq.id}-sectional" onchange="updateEquipmentOverdueUI('${eq.id}')" class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none transition bg-white">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-600 mb-1 uppercase tracking-wider">Remarks</label>
+                            <input type="text" id="${eq.id}-rem" placeholder="Enter remarks..." class="w-full border-gray-300 border rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        </div>
+                    `;
+                }
+
+                const card = `
+                <div class="border rounded-xl p-5 bg-slate-50 shadow-sm transition hover:shadow-md">
+                    <div class="flex items-center justify-between gap-2 mb-4 border-b pb-2">
+                        <div class="flex items-center gap-2">
+                            <div class="bg-blue-800 text-white px-2 py-1 rounded text-sm font-bold">${eq.name}</div>
+                            <h3 class="text-lg font-bold text-gray-700">Settings</h3>
+                        </div>
+                        <label class="flex items-center space-x-2 cursor-pointer bg-white px-3 py-1 rounded-full border shadow-sm hover:bg-gray-50 transition no-print">
+                            <input type="checkbox" id="${eq.id}-applicable" onchange="toggleEquipmentUI('${eq.id}')" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer accent-blue-600">
+                            <span class="text-sm font-bold text-gray-700">Applicable</span>
+                        </label>
+                    </div>
+                    
+                    <div id="${eq.id}-fields" class="space-y-4 transition-all duration-300">
+                        ${fieldsHtml}
+                    </div>
+                </div>`;
+                container.innerHTML += card;
+            });
+        }
+
+        // --- OVERDUE REPORT WITH EXACT DAYS SHOWN ---
+        function generateReport() {
+            const incFilter = document.getElementById("reportSseSelect").value;
+            const eqFilter = document.getElementById("reportEqSelect").value;
+            const sortDir = document.getElementById("reportSortSelect").value;
+            
+            const tbody = document.getElementById("reportTableBody");
+            const noMsg = document.getElementById("noOverdueMsg");
+            tbody.innerHTML = "";
+            
+            let reportRows = [];
+
+            for (let inc in db) {
+                if (incFilter !== "ALL" && inc !== incFilter) continue;
+
+                for (let sec in db[inc]) {
+                    for (let block in db[inc][sec]) {
+                        eqTypes.forEach(eq => {
+                            if (eqFilter !== "ALL" && eq.id !== eqFilter) return;
+
+                            const record = db[inc][sec][block][eq.id];
+                            if (!record || !record.isApplicable) return;
+                            
+                            const iDays = getOverdueDays(record.inchargeDate);
+                            
+                            let isOverdue = false;
+                            let msgs = [];
+                            let maxDays = -1;
+
+                            if (eq.id === 'STM-1') {
+                                if (iDays === null || iDays > 120) {
+                                    isOverdue = true;
+                                    msgs.push(iDays === null ? "Joint: Not Tested" : `Joint: ${iDays - 120} Days Over`);
+                                    maxDays = iDays === null ? 99999 : iDays - 120;
+                                }
+                            } else {
+                                const sDays = getOverdueDays(record.sectionalDate);
+                                
+                                if (iDays === null || iDays > 180) {
+                                    isOverdue = true;
+                                    msgs.push(iDays === null ? "Incharge: Not Tested" : `Incharge: ${iDays - 180} Days Over`);
+                                    maxDays = Math.max(maxDays, iDays === null ? 99999 : iDays - 180);
+                                }
+                                
+                                let effDays = null;
+                                if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                                else if (iDays !== null) effDays = iDays;
+                                else if (sDays !== null) effDays = sDays;
+
+                                if (effDays === null || effDays > 90) {
+                                    isOverdue = true;
+                                    msgs.push(effDays === null ? "Sectional: Not Tested" : `Sectional: ${effDays - 90} Days Over`);
+                                    maxDays = Math.max(maxDays, effDays === null ? 99999 : effDays - 90);
+                                }
+                            }
+
+                            if (isOverdue) {
+                                const sDays = getOverdueDays(record.sectionalDate);
+                                reportRows.push({
+                                    inc, sec, block, eqName: eq.name, 
+                                    inchargeDate: record.inchargeDate || '-',
+                                    iDaysStr: iDays !== null ? iDays : 'N/A',
+                                    sectionalDate: eq.id === 'STM-1' ? '<span class="text-gray-400 italic">N/A</span>' : (record.sectionalDate || '-'),
+                                    sDaysStr: eq.id === 'STM-1' ? '<span class="text-gray-400 italic">-</span>' : (sDays !== null ? sDays : 'N/A'),
+                                    statusMsg: msgs.join("<br>"),
+                                    sortVal: maxDays
+                                });
+                            }
+                        });
+                    }
+                }
+            }
+
+            if (reportRows.length > 0) {
+                noMsg.classList.add("hidden");
+                tbody.parentElement.classList.remove("hidden");
+
+                // Sorting Logic (Oldest/Highest Days First)
+                reportRows.sort((a, b) => sortDir === 'desc' ? b.sortVal - a.sortVal : a.sortVal - b.sortVal);
+
+                reportRows.forEach(row => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-red-50 transition border-b border-gray-200";
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 text-gray-800">${row.inc}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">${row.sec}</td>
+                        <td class="py-3 px-4 font-bold text-gray-800">${row.block}</td>
+                        <td class="py-3 px-4 text-blue-800 font-semibold"><span class="bg-blue-100 px-2 py-1 rounded text-xs">${row.eqName}</span></td>
+                        <td class="py-3 px-4 font-medium text-gray-800">${row.inchargeDate}</td>
+                        <td class="py-3 px-4 font-bold text-blue-900 bg-slate-100/50">${row.iDaysStr}</td>
+                        <td class="py-3 px-4 font-medium text-gray-800">${row.sectionalDate}</td>
+                        <td class="py-3 px-4 font-bold text-blue-900 bg-slate-100/50">${row.sDaysStr}</td>
+                        <td class="py-3 px-4 text-red-600 font-bold bg-red-50 leading-relaxed">${row.statusMsg}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+            } else {
+                noMsg.classList.remove("hidden");
+                tbody.parentElement.classList.add("hidden");
+            }
+        }
+
+        // --- VIEW ALL DATA REPORT WITH EXACT DAYS SHOWN ---
+        function generateAllDataReport() {
+            const tbody = document.getElementById("allDataTableBody");
+            tbody.innerHTML = "";
+
+            for (let inc in db) {
+                for (let sec in db[inc]) {
+                    for (let block in db[inc][sec]) {
+                        eqTypes.forEach(eq => {
+                            const record = db[inc][sec][block][eq.id];
+                            if (!record || !record.isApplicable) return;
+                            
+                            const isStm = (eq.id === 'STM-1');
+                            
+                            const iDays = getOverdueDays(record.inchargeDate);
+                            const sDays = getOverdueDays(record.sectionalDate);
+                            
+                            const iLimit = isStm ? 120 : 180;
+                            const isIOver = iDays === null || iDays > iLimit;
+                            const iHtml = isIOver ? `<span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200">${record.inchargeDate || 'None'} ⚠️</span>` : record.inchargeDate;
+                            
+                            let sHtml = '-';
+                            if (isStm) {
+                                sHtml = '<span class="text-gray-400 italic">N/A</span>';
+                            } else {
+                                let effDays = null;
+                                if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                                else if (iDays !== null) effDays = iDays;
+                                else if (sDays !== null) effDays = sDays;
+                                
+                                const isSOver = effDays === null || effDays > 90;
+                                sHtml = isSOver ? `<span class="text-red-600 font-bold bg-red-50 px-2 py-1 rounded border border-red-200">${record.sectionalDate || 'None'} ⚠️</span>` : record.sectionalDate;
+                            }
+
+                            let iDaysStr = iDays !== null ? iDays : '-';
+                            let sDaysStr = isStm ? '<span class="text-gray-400 italic">-</span>' : (sDays !== null ? sDays : '-');
+
+                            if (isIOver && iDays !== null) iDaysStr = `<span class="text-red-600 font-bold">${iDaysStr}</span>`;
+                            if (!isStm) {
+                                let effDays = null;
+                                if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                                else if (iDays !== null) effDays = iDays;
+                                else if (sDays !== null) effDays = sDays;
+                                
+                                if ((effDays === null || effDays > 90) && sDays !== null) {
+                                    sDaysStr = `<span class="text-red-600 font-bold">${sDaysStr}</span>`;
+                                }
+                            }
+
+                            const tr = document.createElement("tr");
+                            tr.className = "hover:bg-blue-50 transition border-b border-gray-200 search-row";
+                            tr.innerHTML = `
+                                <td class="py-3 px-4 text-gray-800">${inc}</td>
+                                <td class="py-3 px-4 font-bold text-gray-800">${sec}</td>
+                                <td class="py-3 px-4 font-bold text-gray-800 block-name">${block}</td>
+                                <td class="py-3 px-4 text-blue-800 font-semibold"><span class="bg-blue-100 px-2 py-1 rounded text-xs">${eq.name}</span></td>
+                                <td class="py-3 px-4 text-gray-800">${iHtml}</td>
+                                <td class="py-3 px-4 font-bold text-blue-900 bg-slate-100/50">${iDaysStr}</td>
+                                <td class="py-3 px-4 text-gray-800">${sHtml}</td>
+                                <td class="py-3 px-4 font-bold text-blue-900 bg-slate-100/50">${sDaysStr}</td>
+                                <td class="py-3 px-4 text-gray-500 italic text-xs max-w-xs truncate" title="${record.remarks}">${record.remarks || '-'}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                }
+            }
+        }
+
+        // Simple table search filter
+        function filterMasterTable() {
+            const input = document.getElementById("masterSearch").value.toUpperCase();
+            const rows = document.querySelectorAll(".search-row");
+            rows.forEach(row => {
+                const textContent = row.innerText.toUpperCase();
+                row.style.display = textContent.includes(input) ? "" : "none";
+            });
+        }
+
+        function parseCSVLine(text) {
+            let result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < text.length; i++) {
+                let char = text[i];
+                if (char === '"') inQuotes = !inQuotes;
+                else if (char === ',' && !inQuotes) { result.push(current.trim()); current = ''; }
+                else current += char;
+            }
+            result.push(current.trim());
+            return result;
+        }
+
+        function formatToInputDate(dateStr) {
+            if (!dateStr) return "";
+            if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr;
+            const match = dateStr.match(/\d{1,2}[\.\/\-]\d{1,2}[\.\/\-]\d{2,4}/);
+            if (!match) return "";
+            let parts = match[0].split(/[\.\/\-]/);
+            if (parts.length === 3) {
+                let year = parts[2];
+                let month = parts[1].padStart(2, '0');
+                let day = parts[0].padStart(2, '0');
+                if (year.length === 2) year = "20" + year;
+                return `${year}-${month}-${day}`;
+            }
+            return "";
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const lines = e.target.result.split('\n');
+                let currentInc = "";
+                let currentSec = "";
+                let updatedCount = 0;
+
+                for (let i = 2; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const cols = parseCSVLine(line);
+                    
+                    if (cols[0] && cols[0].startsWith("SSE/T")) {
+                        currentInc = cols[0];
+                        if(!db[currentInc]) db[currentInc] = {};
+                    }
+                    
+                    if (cols[1] && (cols[1].startsWith("JE/") || cols[1].startsWith("SSE/"))) {
+                        currentSec = cols[1];
+                        if(currentInc && !db[currentInc][currentSec]) db[currentInc][currentSec] = {};
+                    }
+                    
+                    const blockSection = cols[3];
+                    
+                    if (currentInc && currentSec && blockSection) {
+                        if (!db[currentInc][currentSec][blockSection]) {
+                            db[currentInc][currentSec][blockSection] = {};
+                            eqTypes.forEach(eq => {
+                                db[currentInc][currentSec][blockSection][eq.id] = { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
+                            });
+                        }
+
+                        // Explicit Mapping to the 15 column format
+                        const eqMap = {
+                            "EI": { i: 4, s: 5, r: 6 },
+                            "MSDAC": { i: 7, s: 8, r: 9 },
+                            "IB": { i: 10, s: 11, r: 12 },
+                            "STM-1": { i: 13, s: null, r: 14 }
+                        };
+
+                        const isExplicitNA = (val) => val === "NA" || val === "N/A" || val === "--" || val === "-";
+
+                        eqTypes.forEach(eq => {
+                            const mapping = eqMap[eq.id];
+                            if (cols.length > mapping.i) {
+                                let iRaw = cols[mapping.i] ? cols[mapping.i].trim().toUpperCase() : "";
+                                let sRaw = mapping.s !== null && cols.length > mapping.s && cols[mapping.s] ? cols[mapping.s].trim().toUpperCase() : "";
+                                
+                                let isDisabled = false;
+                                if (eq.id === 'STM-1') {
+                                    if (isExplicitNA(iRaw)) isDisabled = true;
+                                } else {
+                                    if (isExplicitNA(iRaw) || isExplicitNA(sRaw)) isDisabled = true; 
+                                }
+
+                                const iDate = formatToInputDate(cols[mapping.i]);
+                                let sDate = "";
+                                if (mapping.s !== null && cols.length > mapping.s) {
+                                    sDate = formatToInputDate(cols[mapping.s]);
+                                }
+                                const rem = (mapping.r !== null && cols.length > mapping.r) ? cols[mapping.r] : "";
+                                
+                                const hasData = !!(iDate || sDate || rem);
+                                const isApp = !isDisabled && hasData;
+                                
+                                db[currentInc][currentSec][blockSection][eq.id] = { 
+                                    isApplicable: isApp, 
+                                    inchargeDate: isApp ? iDate : "", 
+                                    sectionalDate: isApp ? sDate : "", 
+                                    remarks: isApp ? rem : ""
+                                };
+                            }
+                        });
+                        updatedCount++;
+                    }
+                }
+
+                saveDbToStorage();
+                alert(`CSV Imported successfully! Extracted data for ${updatedCount} valid records.`);
+                
+                populateInitialDropdowns();
+                if (document.getElementById("blockSelect").value) loadDataForSection();
+                generateAllDataReport();
+                generateReport();
+                document.getElementById('fileUpload').value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function exportData(onlyOverdue) {
+            let csvContent = "OFC Testing Dates and overdue Report(MSDAC/EI/IBS/STM),,,,,,,,,,,,,,\n";
+            csvContent += "INCHARGE SSE / Section,SECTIONAL SSE/JE,Sl No of sec.SSE/Tele wise,Block Section/IB/ABS HUTs,EI,,,MSDAC,,,IB,,,STM-1 with RCIL,\n";
+            csvContent += ",,,, working fiber and spae fibers Testing by SSE/Incharge Date, spare  fiber Testing bySectional SSE/JEDate,Remarks , working fiber and spae fibers Testing by SSE/Incharge Date, spare  fiber Testing bySectional SSE/JEDate,Remarks , working fiber and spae fibers Testing by SSE/Incharge Date, spare  fiber Testing bySectional SSE/JEDate,Remarks ,Joint Fiber testing with RCIL,Remarks \n";
+
+            for (let inc in db) {
+                let firstRowForInc = true;
+                
+                for (let sec in db[inc]) {
+                    let slNo = 1;
+                    let firstRowForSec = true;
+
+                    for (let block in db[inc][sec]) {
+                        
+                        let isRowOverdue = false;
+                        if (onlyOverdue) {
+                            eqTypes.forEach(eq => {
+                                const record = db[inc][sec][block][eq.id];
+                                if (record && record.isApplicable) {
+                                    const iDays = getOverdueDays(record.inchargeDate);
+                                    if (eq.id === 'STM-1') {
+                                        if (iDays === null || iDays > 120) isRowOverdue = true;
+                                    } else {
+                                        const sDays = getOverdueDays(record.sectionalDate);
+                                        if (iDays === null || iDays > 180) isRowOverdue = true;
+                                        
+                                        let effDays = null;
+                                        if (iDays !== null && sDays !== null) effDays = Math.min(iDays, sDays);
+                                        else if (iDays !== null) effDays = iDays;
+                                        else if (sDays !== null) effDays = sDays;
+                                        
+                                        if (effDays === null || effDays > 90) isRowOverdue = true;
+                                    }
+                                }
+                            });
+                        }
+                        if (onlyOverdue && !isRowOverdue) continue;
+
+                        let row = [
+                            firstRowForInc ? inc : "", 
+                            firstRowForSec ? sec : "", 
+                            slNo++, 
+                            `"${block}"`
+                        ];
+
+                        eqTypes.forEach(eq => {
+                            let record = db[inc][sec][block][eq.id] || { isApplicable: false, inchargeDate: "", sectionalDate: "", remarks: "" };
+                            
+                            if (record.isApplicable) {
+                                if (eq.id === 'STM-1') {
+                                    row.push(record.inchargeDate);
+                                    row.push(record.remarks ? `"${record.remarks.replace(/"/g, '""')}"` : "");
+                                } else {
+                                    row.push(record.inchargeDate);
+                                    row.push(record.sectionalDate);
+                                    row.push(record.remarks ? `"${record.remarks.replace(/"/g, '""')}"` : "");
+                                }
+                            } else {
+                                if (eq.id === 'STM-1') {
+                                    row.push("NA"); row.push("");
+                                } else {
+                                    row.push("NA"); row.push("NA"); row.push("");
+                                }
+                            }
+                        });
+
+                        csvContent += row.join(",") + "\n";
+                        firstRowForInc = false;
+                        firstRowForSec = false;
+                    }
+                }
+            }
+
+            const fileName = onlyOverdue ? "BZA_DIV_OFC_OVERDUE_REPORT.csv" : "BZA_DIV_OFC_FULL_DATA.csv";
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", fileName);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
